@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Strong Password Checker</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            font-size: 20px;
+        }
+        h1 {
+            font-size: 3em;
+        }
+        label {
+            font-size: 1.4em;
+            display: block;
+            margin-bottom: 0.7em;
+        }
+        input[type="password"] {
+            padding: 1em;
+            font-size: 1.4em;
+            width: 350px;
+            margin-bottom: 1.2em;
+        }
+        p {
+            font-size: 1.4em;
+            margin-bottom: 0.7em;
+        }
+        #strength {
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+        ul {
+            list-style-type: disc;
+            padding-left: 2em;
+            font-size: 1.2em;
+        }
+        ul li {
+            color: black;
+        }
+        ul li::marker {
+            color: blue;
+            font-size: 1.5em;
+        }
+        li.weakness {
+            color: red;
+            margin-bottom: 0.5em;
+        }
+        .very-weak {
+            color: red;
+        }
+        .weak {
+            color: orange;
+        }
+        .medium {
+            color: yellowgreen;
+        }
+        .strong {
+            color: green;
+        }
+        .very-strong {
+            color: darkgreen;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Strong Password Checker</h1>
+    <label for="password">Enter Password:</label>
+    <input type="password" id="password" onkeyup="checkStrength()">
+    <p>Strength: <span id="strength"></span></p>
+    <ul id="weaknesses"></ul>
+
+    <script>
+        function checkStrength() {
+            const password = document.getElementById("password").value;
+            const strengthElement = document.getElementById("strength");
+            const weaknessesList = document.getElementById("weaknesses");
+            weaknessesList.innerHTML = "";
+            let strengthScore = 0;
+            const weaknesses = [];
+
+            const lengthBonus = Math.min(password.length, 20) * 0.15;
+            const uppercaseBonus = /[A-Z]/.test(password) ? 1 : 0;
+            const lowercaseBonus = /[a-z]/.test(password) ? 1 : 0;
+            const digitBonus = /[0-9]/.test(password) ? 1 : 0;
+            const specialCharBonus = /[!@#$%^&*(),.?\":{}|<>]/.test(password) ? 1.5 : 0;
+            const uniqueCharBonus = Math.min((new Set(password)).size, 15) * 0.2;
+
+            strengthScore += lengthBonus + uppercaseBonus + lowercaseBonus + digitBonus + specialCharBonus + uniqueCharBonus;
+
+            if (password.length < 8) {
+                weaknesses.push("<li class='weakness'>Too short (minimum 8 characters recommended, 12+ for strong).</li>");
+            }
+            if (!/[A-Z]/.test(password)) {
+                weaknesses.push("<li class='weakness'>Missing uppercase letter.</li>");
+            }
+            if (!/[a-z]/.test(password)) {
+                weaknesses.push("<li class='weakness'>Missing lowercase letter.</li>");
+            }
+            if (!/[0-9]/.test(password)) {
+                weaknesses.push("<li class='weakness'>Missing digit.</li>");
+            }
+            if (!/[!@#$%^&*(),.?\":{}|<>]/.test(password)) {
+                weaknesses.push("<li class='weakness'>Missing special character.</li>");
+            }
+            if (/(.)\1{2,}/.test(password)) {
+                weaknesses.push("<li class='weakness'>Contains repeated characters (e.g., 'aaa').</li>");
+            }
+
+            const commonPatterns = ["123", "abc", "qwerty", "password"];
+            if (commonPatterns.some(pattern => password.toLowerCase().includes(pattern))) {
+                weaknesses.push("<li class='weakness'>Contains a common pattern.</li>");
+            }
+
+            const alphabetSize = (/[a-z]/.test(password) ? 26 : 0) +
+                                 (/[A-Z]/.test(password) ? 26 : 0) +
+                                 (/[0-9]/.test(password) ? 10 : 0) +
+                                 (/[!@#$%^&*(),.?\":{}|<>]/.test(password) ? 32 : 0);
+            const entropy = password.length * Math.log2(alphabetSize);
+
+            if (entropy < 40) {
+                weaknesses.push("<li class='weakness'>Low entropy - consider more diverse characters and/or length.</li>");
+            }
+
+            if (weaknesses.length > 0) {
+                if (strengthScore < 3) {
+                    strengthElement.textContent = "Very Weak";
+                    strengthElement.className = "very-weak";
+                } else if (strengthScore < 5) {
+                    strengthElement.textContent = "Weak";
+                    strengthElement.className = "weak";
+                } else if (strengthScore < 7) {
+                    strengthElement.textContent = "Medium";
+                    strengthElement.className = "medium";
+                } else if (strengthScore < 9) {
+                    strengthElement.textContent = "Strong";
+                    strengthElement.className = "strong";
+                } else {
+                    strengthElement.textContent = "Very Strong";
+                    strengthElement.className = "very-strong";
+                }
+            } else {
+                if (strengthScore < 7) {
+                    strengthElement.textContent = "Medium";
+                    strengthElement.className = "medium";
+                } else if (strengthScore < 9) {
+                    strengthElement.textContent = "Strong";
+                    strengthElement.className = "strong";
+                } else {
+                    strengthElement.textContent = "Very Strong";
+                    strengthElement.className = "very-strong";
+                }
+            }
+
+            weaknessesList.innerHTML = weaknesses.join("");
+        }
+    </script>
+</body>
+</html>
